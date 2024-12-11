@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Year Folder Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label, input, button {
+            font-size: 1.2em;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #feedback {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #007BFF;
+        }
+        #downloadLink {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #007BFF;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Select Year</h1>
+    <form id="yearForm">
+        <label for="year">Year:</label>
+        <input type="number" id="year" name="year" min="2000" max="2100" required>
+        <button type="submit">Generate</button>
+    </form>
+    <div id="feedback" style="display:none;">Generating folder structure, please wait...</div>
+    <a id="downloadLink" style="display:none;">Download ZIP</a>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script>
+        document.getElementById('yearForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const year = document.getElementById('year').value;
+            document.getElementById('feedback').style.display = 'block';
+            document.getElementById('downloadLink').style.display = 'none';
+            generateZip(year);
+        });
+
+        function generateZip(year) {
+            const zip = new JSZip();
+            const monthNames = ["January", "February", "March", "April", "May", "June", 
+                                "July", "August", "September", "October", "November", "December"];
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+            for (let month = 0; month < 12; month++) {
+                const monthFolder = zip.folder(`${year}-${String(month + 1).padStart(2, '0')}-${monthNames[month]}`);
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const dayName = dayNames[date.getDay()];
+                    monthFolder.folder(`${String(day).padStart(2, '0')}-${String(month + 1).padStart(2, '0')}-${dayName}`);
+                }
+            }
+
+            zip.generateAsync({ type: 'blob' }).then(function(content) {
+                const downloadLink = document.getElementById('downloadLink');
+                downloadLink.href = URL.createObjectURL(content);
+                downloadLink.download = `${year}.zip`;
+                downloadLink.style.display = 'block';
+                downloadLink.textContent = 'Download ZIP';
+                document.getElementById('feedback').style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>
